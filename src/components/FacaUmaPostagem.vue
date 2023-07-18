@@ -59,6 +59,7 @@
       </v-form>
 
       <v-dialog
+        v-if="erro"
         transition="dialog-bottom-transition"
         v-model="dialog"
         width="auto"
@@ -76,12 +77,33 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <v-dialog
+        v-else
+        transition="dialog-bottom-transition"
+        v-model="dialog"
+        width="auto"
+      >
+        <v-card>
+          <v-card-title class="text-center">Parabéns</v-card-title>
+          <v-card-text>Postagem cadastrada com sucesso</v-card-text>
+          <v-card-actions>
+            <v-btn 
+              color="success" 
+              block 
+              @click="irParaPostagens"
+            >Fechar
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-card>
   </v-container>
 </template>
 
 <script setup lang="ts">
-  import axios from 'axios';
+  import router from '@/router';
+import axios from 'axios';
   import { ref } from 'vue';
 
 
@@ -95,20 +117,38 @@
     titulo_artigo:'',
     resumo_artigo:'',
     artigo_completo:'',
-  })  
-
+  });
+  const erro = ref(false);
   /**
    * Methods
    */
+
+  const limparCampos = () => {
+    form.value.autor_artigo = '';
+    form.value.data_postagem = '';
+    form.value.resumo_artigo= '';
+    form.value.artigo_completo = '';
+    form.value.titulo_artigo = '';
+  }
+  
   const salvar = () => {
     axios.post('http://localhost:8000/api/blog', form.value)
       .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
+        erro.value = false;
         dialog.value = true;
       })
-      .finally();
+      .catch((error) => {
+        erro.value =  true;
+        dialog.value = true;
+      })
+      .finally(() => {
+          limparCampos();
+        }
+      );
+  }
+
+  const irParaPostagens = () => {
+    router.push('/');
   }
 
   const required = (value:string) => {
